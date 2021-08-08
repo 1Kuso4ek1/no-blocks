@@ -1,0 +1,46 @@
+vars {
+path
+}
+flags {
+funroll-loops
+fomit-frame-pointer
+Ofast
+finline-functions
+funswitch-loops
+ffast-math
+fforce-addr
+g
+Ipath/3Dev/include
+IPerlinNoise
+O3
+std=c++17
+}
+files {
+main.cpp
+path/3Dev/src/Animation.cpp
+path/3Dev/src/Button.cpp
+path/3Dev/src/Camera.cpp
+path/3Dev/src/Gui.cpp
+path/3Dev/src/Light.cpp
+path/3Dev/src/Model.cpp
+path/3Dev/src/Shader.cpp
+path/3Dev/src/Shape.cpp
+path/3Dev/src/TextBox.cpp
+path/3Dev/src/Material.cpp
+path/3Dev/src/Engine.cpp
+}
+libs {
+GL
+GLU
+GLEW
+assimp
+pthread
+sfml-graphics
+sfml-window
+sfml-system
+sfml-audio
+sfml-network
+}
+name {
+noblocks
+}
