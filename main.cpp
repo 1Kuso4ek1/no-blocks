@@ -51,7 +51,7 @@ int main()
     
     engine.GetWindow().setMouseCursorVisible(false);
     engine.GetWindow().setVerticalSyncEnabled(true);
-    engine.GetWindow().setFramerateLimit(120);
+    engine.GetWindow().setFramerateLimit(60);
 
     glewInit();
 
@@ -80,8 +80,8 @@ int main()
 
     engine.Loop([&]() 
     {
-        float time = frametime.restart().asMilliseconds() / 20;
-        time = time > 5 ? 5 : time;
+        float time = frametime.restart().asMilliseconds() / 30;
+        time = time > 5 ? 5 : time + 1;
 
         cam.Move(time);
         cam.Mouse(engine.GetWindow());
@@ -96,24 +96,21 @@ int main()
         if(l.GetParameters(GL_AMBIENT)[0] >= 3) { day = true; globaltime.restart(); }
         else if(l.GetParameters(GL_AMBIENT)[0] <= 0) { day = false; globaltime.restart(); }
 
-        auto amb = l.GetParameters(GL_AMBIENT);
+        std::vector<float> amb = l.GetParameters(GL_AMBIENT);
         std::for_each(amb.begin(), amb.end() - 1, [](float& a) { a /= 4; });
         l.SetParameters(amb, GL_DIFFUSE);
         l.SetPosition(cam.x - 30, 30, cam.z - 30);
 
         l.Update();
 
-        cam.y -= 0.1 * time;
+        cam.y -= 0.1;
         for(int i = -4 + cam.z / 10; i < 4 + cam.z / 10; i++)
             for(int j = -4 + cam.x / 10; j < 4  + cam.x / 10; j++)
             {
                 Deform(chunk, j * 10, i * 10, map, 7);
                 chunk.SetPosition(j * 10, 0, i * 10);
                 chunk.Draw();
-
-                float col = collision(cam.x, cam.y, cam.z, chunk).second.y;
-                
-                if(col != 0) cam.y += (col / 3) + (0.09 * time);
+                cam.y += (collision(cam.x, cam.y, cam.z, chunk).second.y / 3);
             }
                         
         l.SetParameters({ 0 }, GL_LINEAR_ATTENUATION);
