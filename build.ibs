@@ -11,12 +11,13 @@ ffast-math
 fforce-addr
 g
 Ipath/3Dev/include
-IPerlinNoise
+Iinclude
 O3
 std=c++17
 }
 files {
 main.cpp
+World.cpp
 path/3Dev/src/Animation.cpp
 path/3Dev/src/Button.cpp
 path/3Dev/src/Camera.cpp

@@ -1,47 +1,26 @@
 #include <Engine.h>
-#include <random>
-#include <PerlinNoise.hpp>
 #include <Physics.h>
+#include <World.h>
 
-std::random_device r;
-std::default_random_engine eng(r());
-
-long double Random(long double min, long double max)
-{
-	return std::uniform_real_distribution<long double>(min, max)(eng);
-}
-
-void Deform(Model& chunk, float offsetX, float offsetY, sf::Image& map, double strenght)
+void Deform2D(Model& chunk, float offsetX, float offsetY, World& world, double strenght)
 {
     for(int i = 0; i < chunk.numVerts * 3; i += 3)
     {
-        chunk.vertexArray[i + 1] = (((float)map.getPixel(std::abs(chunk.vertexArray[i] + offsetX), std::abs(chunk.vertexArray[i + 2] + offsetY)).r) / 255) * strenght;
+        chunk.vertexArray[i + 1] = world.GetNoise(std::abs(chunk.vertexArray[i] + offsetX), std::abs(chunk.vertexArray[i + 2] + offsetY)) * strenght;
     }
 }
 
-sf::Image CreateWorld(int imagesize = 512)
+void Deform3D(Model& chunk, float offsetX, float offsetY, float offsetZ, World& world, double strenght) //in progress
 {
-    sf::Image ret;
-    ret.create(imagesize, imagesize);
-
-    double freq = Random(0.1, 64), fx = ret.getSize().x / freq, fy = ret.getSize().y / freq;
-    uint32_t oct = (uint32_t)Random(1, 16), seed = (uint32_t)Random(0, 2147483648);
-
-    siv::PerlinNoise perlin(seed);
-
-    for(int y = 0; y < ret.getSize().y; y++)
-        for(int x = 0; x < ret.getSize().x; x++)
-        {
-            double col = perlin.accumulatedOctaveNoise2D_0_1(x / fx, y / fy, oct) * 255;
-            ret.setPixel(x, y, sf::Color(col, col, col));
-        }
-
-    return ret;
+    for(int i = 0; i < chunk.numVerts * 3; i += 3)
+    {
+        chunk.vertexArray[i + 1] = world.GetNoise(std::abs(chunk.vertexArray[i] + offsetX), std::abs(chunk.vertexArray[i + 1] + offsetY), std::abs(chunk.vertexArray[i + 2] + offsetZ)) * strenght;
+    }
 }
 
 int main()
 {
-    sf::Image map = CreateWorld();
+    World world(512);
 
     Engine engine;
     
@@ -80,8 +59,8 @@ int main()
 
     engine.Loop([&]() 
     {
-        float time = frametime.restart().asMilliseconds() / 30;
-        time = time > 5 ? 5 : time + 1;
+        float time = (float)frametime.restart().asMilliseconds() / 40;
+        time = time > 5 ? 5 : time;
 
         cam.Move(time);
         cam.Mouse(engine.GetWindow());
@@ -99,7 +78,7 @@ int main()
         std::vector<float> amb = l.GetParameters(GL_AMBIENT);
         std::for_each(amb.begin(), amb.end() - 1, [](float& a) { a /= 4; });
         l.SetParameters(amb, GL_DIFFUSE);
-        l.SetPosition(cam.x - 30, 30, cam.z - 30);
+        l.SetPosition(cam.x - 30, cam.y + 30, cam.z - 30);
 
         l.Update();
 
@@ -107,7 +86,7 @@ int main()
         for(int i = -4 + cam.z / 10; i < 4 + cam.z / 10; i++)
             for(int j = -4 + cam.x / 10; j < 4  + cam.x / 10; j++)
             {
-                Deform(chunk, j * 10, i * 10, map, 7);
+                Deform2D(chunk, j * 10, i * 10, world, 7);
                 chunk.SetPosition(j * 10, 0, i * 10);
                 chunk.Draw();
                 cam.y += (collision(cam.x, cam.y, cam.z, chunk).second.y / 3);
@@ -120,6 +99,4 @@ int main()
     });
 
     engine.Launch();
-
-    map.saveToFile("world.jpg");
 }
